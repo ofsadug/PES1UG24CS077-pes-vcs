@@ -397,3 +397,28 @@ ObjectID id;
 object_write(OBJ_BLOB, data, size, &id);
 free(data);
 }
+// Commit 5: metadata + update
+
+struct stat st;
+stat(path, &st);
+
+IndexEntry *e = index_find(idx, path);
+
+if (e) {
+    e->id = id;
+    e->mtime = st.st_mtime;
+    e->size = st.st_size;
+    e->mode = 100644;
+    return 0;
+}
+
+idx->entries = realloc(idx->entries, sizeof(IndexEntry) * (idx->count + 1));
+
+IndexEntry *ne = &idx->entries[idx->count++];
+strcpy(ne->path, path);
+ne->id = id;
+ne->mtime = st.st_mtime;
+ne->size = st.st_size;
+ne->mode = 100644;
+
+return 0;
