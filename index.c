@@ -253,6 +253,25 @@ int index_save(const Index *index) {
                 sorted[i].path);
     }
 
+// Commit 2: Basic index_save
+
+FILE *fp = fopen(INDEX_FILE, "w");
+if (!fp) return -1;
+
+for (size_t i = 0; i < idx->count; i++) {
+    char hex[HASH_HEX_SIZE + 1];
+    hash_to_hex(&idx->entries[i].id, hex);
+
+    fprintf(fp, "%o %s %ld %ld %s\n",
+        idx->entries[i].mode,
+        hex,
+        idx->entries[i].mtime,
+        idx->entries[i].size,
+        idx->entries[i].path);
+}
+
+fclose(fp);
+return 0;
     fflush(f);
     if (fsync(fileno(f)) != 0) {
         fclose(f);
