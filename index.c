@@ -162,7 +162,36 @@ int index_load(Index *index) {
     while (fgets(line, sizeof(line), f)) {
         if (index->count >= MAX_INDEX_ENTRIES) {
             fclose(f);
-            return -1;
+ // Commit 1: Load index with metadata
+
+idx->entries = NULL;
+idx->count = 0;
+
+FILE *fp = fopen(INDEX_FILE, "r");
+if (!fp) return 0;
+
+char line[1024];
+
+while (fgets(line, sizeof(line), fp)) {
+    IndexEntry entry;
+    char hash_hex[HASH_HEX_SIZE + 1];
+
+    if (sscanf(line, "%o %64s %ld %ld %[^\n]",
+        &entry.mode,
+        hash_hex,
+        &entry.mtime,
+        &entry.size,
+        entry.path) != 5)
+        continue;
+
+    hex_to_hash(hash_hex, &entry.id);
+
+    idx->entries = realloc(idx->entries, sizeof(IndexEntry) * (idx->count + 1));
+    idx->entries[idx->count++] = entry;
+}
+
+fclose(fp);
+return 0;           return -1;
         }
 
         IndexEntry *e = &index->entries[index->count];
