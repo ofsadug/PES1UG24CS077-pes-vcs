@@ -95,7 +95,7 @@ int object_exists(const ObjectID *id) {
 // Returns 0 on success, -1 on error.
 int object_write(ObjectType type, const void *data, size_t len, ObjectID *id_out) {
     // TODO: Implement
-    // Commit 2: Add hashing
+// Commit 3: Add file storage
 
 const char *type_str;
 
@@ -114,13 +114,39 @@ if (!full) return -1;
 memcpy(full, header, header_len);
 memcpy(full + header_len, data, len);
 
-// hashing
 compute_hash(full, total_len, id_out);
 
-free(full);
-return -1;
-    (void)type; (void)data; (void)len; (void)id_out;
+// skip if exists
+if (object_exists(id_out)) {
+    free(full);
+    return 0;
+}
+
+char path[512];
+object_path(id_out, path, sizeof(path));
+
+// create directory
+char dir[512];
+strncpy(dir, path, sizeof(dir));
+char *slash = strrchr(dir, '/');
+*slash = '\0';
+
+mkdir(".pes", 0755);
+mkdir(".pes/objects", 0755);
+mkdir(dir, 0755);
+
+// write file
+FILE *fp = fopen(path, "wb");
+if (!fp) {
+    free(full);
     return -1;
+}
+
+fwrite(full, 1, total_len, fp);
+fclose(fp);
+
+free(full);
+return 0;
 }
 
 // Read an object from the store.
