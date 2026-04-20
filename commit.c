@@ -196,6 +196,8 @@ int head_update(const ObjectID *new_commit) {
 int commit_create(const char *message, ObjectID *commit_id_out) {
     // TODO: Implement commit creation
     // (See Lab Appendix for logical steps)
+    // Commit 1: basic validation
+if (!message || !id_out) return -1;
     (void)message; (void)commit_id_out;
     return -1;
 }
