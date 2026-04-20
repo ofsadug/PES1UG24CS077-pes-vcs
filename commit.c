@@ -198,6 +198,10 @@ int commit_create(const char *message, ObjectID *commit_id_out) {
     // (See Lab Appendix for logical steps)
     // Commit 1: basic validation
 if (!message || !id_out) return -1;
+// Commit 2: generate tree
+ObjectID tree_id;
+if (tree_from_index(&tree_id) != 0)
+    return -1;
     (void)message; (void)commit_id_out;
     return -1;
 }
