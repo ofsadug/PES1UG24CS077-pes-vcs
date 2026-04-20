@@ -123,6 +123,22 @@ int commit_walk(commit_walk_fn callback, void *ctx) {
         id = c.parent;
     }
     return 0;
+// Commit 3: build commit content
+char tree_hex[HASH_HEX_SIZE + 1];
+hash_to_hex(&tree_id, tree_hex);
+
+const char *author = getenv("PES_AUTHOR");
+if (!author) author = "unknown";
+
+char buffer[2048];
+
+int len = snprintf(buffer, sizeof(buffer),
+    "tree %s\n"
+    "author %s\n"
+    "message %s\n",
+    tree_hex,
+    author,
+    message);
 }
 
 // Read the current HEAD commit hash.
