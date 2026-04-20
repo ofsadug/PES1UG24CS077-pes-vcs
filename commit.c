@@ -222,4 +222,15 @@ if (tree_from_index(&tree_id) != 0)
     return -1;
     (void)message; (void)commit_id_out;
     return -1;
+// Commit 5: update HEAD
+FILE *fp = fopen(".pes/HEAD", "w");
+if (!fp) return -1;
+
+char hex[HASH_HEX_SIZE + 1];
+hash_to_hex(id_out, hex);
+
+fprintf(fp, "%s\n", hex);
+fclose(fp);
+
+return 0;
 }
