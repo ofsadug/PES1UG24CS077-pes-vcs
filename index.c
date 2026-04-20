@@ -289,15 +289,13 @@ int index_add(Index *index, const char *path) {
     if (!entry) {
         if (index->count >= MAX_INDEX_ENTRIES) return -1;
         entry = &index->entries[index->count++];
-    }
+    } 
 
     entry->mode = (st.st_mode & S_IXUSR) ? MODE_EXEC : MODE_FILE;
     entry->hash = blob;
     entry->mtime_sec = (uint64_t)st.st_mtime;
     entry->size = (uint32_t)st.st_size;
     snprintf(entry->path, sizeof(entry->path), "%s", path);
-// minor safety improvement
-if (!idx) return -1;
     return index_save(index);
 }
 
