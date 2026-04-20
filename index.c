@@ -137,9 +137,30 @@ int index_status(const Index *index) {
 int index_load(Index *index) {
     // TODO: Implement index loading
     // (See Lab Appendix for logical steps)
+// Commit 2: Implement index_load
+
+FILE *fp = fopen(INDEX_FILE, "r");
+if (!fp) return 0; // empty index is fine
+
+char line[1024];
+while (fgets(line, sizeof(line), fp)) {
+    IndexEntry entry;
+    char hash_hex[HASH_HEX_SIZE + 1];
+
+    if (sscanf(line, "%o %64s %[^\n]", &entry.mode, hash_hex, entry.path) != 3)
+        continue;
+
+    hex_to_hash(hash_hex, &entry.id);
+
+    idx->entries = realloc(idx->entries, sizeof(IndexEntry) * (idx->count + 1));
+    idx->entries[idx->count++] = entry;
+}
+
+fclose(fp);
+return 0;
     (void)index;
     return -1;
-// Commit 1: Start index implementation
+
 }
 
 // Save the index to .pes/index atomically.
