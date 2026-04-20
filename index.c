@@ -296,6 +296,8 @@ int index_add(Index *index, const char *path) {
     entry->mtime_sec = (uint64_t)st.st_mtime;
     entry->size = (uint32_t)st.st_size;
     snprintf(entry->path, sizeof(entry->path), "%s", path);
-
+// minor safety improvement
+if (!idx) return -1;
     return index_save(index);
 }
+
