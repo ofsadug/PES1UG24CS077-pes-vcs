@@ -139,5 +139,32 @@ if (!idx || idx->count == 0) return -1;
 for (size_t i = 0; i < idx->count; i++) {
     // process entries
 }
+// Commit 3: Build tree entry strings
+
+size_t buf_size = 1024;
+char *buffer = malloc(buf_size);
+size_t offset = 0;
+
+for (size_t i = 0; i < idx->count; i++) {
+    IndexEntry *e = &idx->entries[i];
+
+    char hex[HASH_HEX_SIZE + 1];
+    hash_to_hex(&e->id, hex);
+
+    char line[1024];
+    int len = snprintf(line, sizeof(line),
+        "%o blob %s %s\n",
+        e->mode,
+        hex,
+        e->path);
+
+    if (offset + len >= buf_size) {
+        buf_size *= 2;
+        buffer = realloc(buffer, buf_size);
+    }
+
+    memcpy(buffer + offset, line, len);
+    offset += len;
+}
     return -1;
 }
