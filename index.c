@@ -178,6 +178,8 @@ int index_save(const Index *index) {
     // (See Lab Appendix for logical steps)
     // Commit 3: Implement index_save
 
+// Commit 3: Implement index_save
+
 FILE *fp = fopen(INDEX_FILE, "w");
 if (!fp) return -1;
 
