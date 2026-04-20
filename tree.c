@@ -135,5 +135,9 @@ int tree_from_index(ObjectID *id_out) {
     (void)id_out;
     // Commit 1: Start tree_from_index
 if (!idx || idx->count == 0) return -1;
+// Commit 2: Iterate index entries
+for (size_t i = 0; i < idx->count; i++) {
+    // process entries
+}
     return -1;
 }
