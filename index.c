@@ -325,7 +325,41 @@ int index_add(Index *index, const char *path) {
         return -1;
     }
     fclose(f);
+// Commit 3: Sort + atomic save
 
+FILE *fp = fopen(INDEX_FILE ".tmp", "w");
+if (!fp) return -1;
+
+// simple sort
+for (size_t i = 0; i < idx->count; i++) {
+    for (size_t j = i + 1; j < idx->count; j++) {
+        if (strcmp(idx->entries[i].path, idx->entries[j].path) > 0) {
+            IndexEntry t = idx->entries[i];
+            idx->entries[i] = idx->entries[j];
+            idx->entries[j] = t;
+        }
+    }
+}
+
+for (size_t i = 0; i < idx->count; i++) {
+    char hex[HASH_HEX_SIZE + 1];
+    hash_to_hex(&idx->entries[i].id, hex);
+
+    fprintf(fp, "%o %s %ld %ld %s\n",
+        idx->entries[i].mode,
+        hex,
+        idx->entries[i].mtime,
+        idx->entries[i].size,
+        idx->entries[i].path);
+}
+
+fflush(fp);
+fsync(fileno(fp));
+fclose(fp);
+
+rename(INDEX_FILE ".tmp", INDEX_FILE);
+
+return 0;
     ObjectID blob;
     if (object_write(OBJ_BLOB, buf, file_size, &blob) != 0) {
         free(buf);
