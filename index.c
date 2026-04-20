@@ -211,6 +211,44 @@ return 0;
 int index_add(Index *index, const char *path) {
     // TODO: Implement file staging
     // (See Lab Appendix for logical steps)
+// Commit 4: Implement index_add
+
+FILE *fp = fopen(path, "rb");
+if (!fp) return -1;
+
+fseek(fp, 0, SEEK_END);
+long size = ftell(fp);
+rewind(fp);
+
+void *data = malloc(size);
+fread(data, 1, size, fp);
+fclose(fp);
+
+ObjectID id;
+if (object_write(OBJ_BLOB, data, size, &id) != 0) {
+    free(data);
+    return -1;
+}
+free(data);
+
+// check if exists → update
+for (size_t i = 0; i < idx->count; i++) {
+    if (strcmp(idx->entries[i].path, path) == 0) {
+        idx->entries[i].id = id;
+        idx->entries[i].mode = 100644;
+        return 0;
+    }
+}
+
+// new entry
+idx->entries = realloc(idx->entries, sizeof(IndexEntry) * (idx->count + 1));
+
+IndexEntry *e = &idx->entries[idx->count++];
+strcpy(e->path, path);
+e->id = id;
+e->mode = 100644;
+
+return 0;
     (void)index; (void)path;
     return -1;
 }
