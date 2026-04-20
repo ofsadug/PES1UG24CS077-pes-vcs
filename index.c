@@ -176,6 +176,23 @@ return 0;
 int index_save(const Index *index) {
     // TODO: Implement atomic index saving
     // (See Lab Appendix for logical steps)
+    // Commit 3: Implement index_save
+
+FILE *fp = fopen(INDEX_FILE, "w");
+if (!fp) return -1;
+
+for (size_t i = 0; i < idx->count; i++) {
+    char hex[HASH_HEX_SIZE + 1];
+    hash_to_hex(&idx->entries[i].id, hex);
+
+    fprintf(fp, "%o %s %s\n",
+        idx->entries[i].mode,
+        hex,
+        idx->entries[i].path);
+}
+
+fclose(fp);
+return 0;
     (void)index;
     return -1;
 }
