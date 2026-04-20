@@ -380,4 +380,20 @@ return 0;
     snprintf(entry->path, sizeof(entry->path), "%s", path);
 
     return index_save(index);
+// Commit 4: Read file + create blob
+
+FILE *fp = fopen(path, "rb");
+if (!fp) return -1;
+
+fseek(fp, 0, SEEK_END);
+long size = ftell(fp);
+rewind(fp);
+
+void *data = malloc(size);
+fread(data, 1, size, fp);
+fclose(fp);
+
+ObjectID id;
+object_write(OBJ_BLOB, data, size, &id);
+free(data);
 }
