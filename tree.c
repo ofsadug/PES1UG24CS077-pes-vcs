@@ -166,5 +166,10 @@ for (size_t i = 0; i < idx->count; i++) {
     memcpy(buffer + offset, line, len);
     offset += len;
 }
+// Commit 4: Write tree object
+
+int rc = object_write(OBJ_TREE, buffer, offset, tree_id);
+free(buffer);
+return rc;
     return -1;
 }
