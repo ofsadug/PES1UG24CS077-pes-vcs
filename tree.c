@@ -133,5 +133,7 @@ int tree_from_index(ObjectID *id_out) {
     // TODO: Implement recursive tree building
     // (See Lab Appendix for logical steps)
     (void)id_out;
+    // Commit 1: Start tree_from_index
+if (!idx || idx->count == 0) return -1;
     return -1;
 }
