@@ -162,36 +162,7 @@ int index_load(Index *index) {
     while (fgets(line, sizeof(line), f)) {
         if (index->count >= MAX_INDEX_ENTRIES) {
             fclose(f);
- // Commit 1: Load index with metadata
-
-idx->entries = NULL;
-idx->count = 0;
-
-FILE *fp = fopen(INDEX_FILE, "r");
-if (!fp) return 0;
-
-char line[1024];
-
-while (fgets(line, sizeof(line), fp)) {
-    IndexEntry entry;
-    char hash_hex[HASH_HEX_SIZE + 1];
-
-    if (sscanf(line, "%o %64s %ld %ld %[^\n]",
-        &entry.mode,
-        hash_hex,
-        &entry.mtime,
-        &entry.size,
-        entry.path) != 5)
-        continue;
-
-    hex_to_hash(hash_hex, &entry.id);
-
-    idx->entries = realloc(idx->entries, sizeof(IndexEntry) * (idx->count + 1));
-    idx->entries[idx->count++] = entry;
-}
-
-fclose(fp);
-return 0;           return -1;
+            return -1;
         }
 
         IndexEntry *e = &index->entries[index->count];
@@ -253,25 +224,6 @@ int index_save(const Index *index) {
                 sorted[i].path);
     }
 
-// Commit 2: Basic index_save
-
-FILE *fp = fopen(INDEX_FILE, "w");
-if (!fp) return -1;
-
-for (size_t i = 0; i < idx->count; i++) {
-    char hex[HASH_HEX_SIZE + 1];
-    hash_to_hex(&idx->entries[i].id, hex);
-
-    fprintf(fp, "%o %s %ld %ld %s\n",
-        idx->entries[i].mode,
-        hex,
-        idx->entries[i].mtime,
-        idx->entries[i].size,
-        idx->entries[i].path);
-}
-
-fclose(fp);
-return 0;
     fflush(f);
     if (fsync(fileno(f)) != 0) {
         fclose(f);
@@ -325,41 +277,7 @@ int index_add(Index *index, const char *path) {
         return -1;
     }
     fclose(f);
-// Commit 3: Sort + atomic save
 
-FILE *fp = fopen(INDEX_FILE ".tmp", "w");
-if (!fp) return -1;
-
-// simple sort
-for (size_t i = 0; i < idx->count; i++) {
-    for (size_t j = i + 1; j < idx->count; j++) {
-        if (strcmp(idx->entries[i].path, idx->entries[j].path) > 0) {
-            IndexEntry t = idx->entries[i];
-            idx->entries[i] = idx->entries[j];
-            idx->entries[j] = t;
-        }
-    }
-}
-
-for (size_t i = 0; i < idx->count; i++) {
-    char hex[HASH_HEX_SIZE + 1];
-    hash_to_hex(&idx->entries[i].id, hex);
-
-    fprintf(fp, "%o %s %ld %ld %s\n",
-        idx->entries[i].mode,
-        hex,
-        idx->entries[i].mtime,
-        idx->entries[i].size,
-        idx->entries[i].path);
-}
-
-fflush(fp);
-fsync(fileno(fp));
-fclose(fp);
-
-rename(INDEX_FILE ".tmp", INDEX_FILE);
-
-return 0;
     ObjectID blob;
     if (object_write(OBJ_BLOB, buf, file_size, &blob) != 0) {
         free(buf);
@@ -380,45 +298,4 @@ return 0;
     snprintf(entry->path, sizeof(entry->path), "%s", path);
 
     return index_save(index);
-// Commit 4: Read file + create blob
-
-FILE *fp = fopen(path, "rb");
-if (!fp) return -1;
-
-fseek(fp, 0, SEEK_END);
-long size = ftell(fp);
-rewind(fp);
-
-void *data = malloc(size);
-fread(data, 1, size, fp);
-fclose(fp);
-
-ObjectID id;
-object_write(OBJ_BLOB, data, size, &id);
-free(data);
 }
-// Commit 5: metadata + update
-
-struct stat st;
-stat(path, &st);
-
-IndexEntry *e = index_find(idx, path);
-
-if (e) {
-    e->id = id;
-    e->mtime = st.st_mtime;
-    e->size = st.st_size;
-    e->mode = 100644;
-    return 0;
-}
-
-idx->entries = realloc(idx->entries, sizeof(IndexEntry) * (idx->count + 1));
-
-IndexEntry *ne = &idx->entries[idx->count++];
-strcpy(ne->path, path);
-ne->id = id;
-ne->mtime = st.st_mtime;
-ne->size = st.st_size;
-ne->mode = 100644;
-
-return 0;
