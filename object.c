@@ -55,9 +55,51 @@ void object_path(const ObjectID *id, char *path_out, size_t path_size) {
 }
 
 int object_exists(const ObjectID *id) {
-    char path[512];
-    object_path(id, path, sizeof(path));
-    return access(path, F_OK) == 0;
+// Commit 4: Implement object_read
+
+char path[512];
+object_path(id, path, sizeof(path));
+
+FILE *fp = fopen(path, "rb");
+if (!fp) return -1;
+
+fseek(fp, 0, SEEK_END);
+long size = ftell(fp);
+rewind(fp);
+
+char *buffer = malloc(size);
+fread(buffer, 1, size, fp);
+fclose(fp);
+
+// verify hash
+ObjectID check;
+compute_hash(buffer, size, &check);
+if (memcmp(check.hash, id->hash, HASH_SIZE) != 0) {
+    free(buffer);
+    return -1;
+}
+
+// parse header
+char *null_pos = memchr(buffer, '\0', size);
+*null_pos = '\0';
+
+char type_str[10];
+size_t data_len;
+
+sscanf(buffer, "%s %zu", type_str, &data_len);
+
+if (strcmp(type_str, "blob") == 0) *type_out = OBJ_BLOB;
+else if (strcmp(type_str, "tree") == 0) *type_out = OBJ_TREE;
+else if (strcmp(type_str, "commit") == 0) *type_out = OBJ_COMMIT;
+
+char *data_start = null_pos + 1;
+
+*data_out = malloc(data_len);
+memcpy(*data_out, data_start, data_len);
+*len_out = data_len;
+
+free(buffer);
+return 0;
 }
 
 // ─── TODO: Implement these ──────────────────────────────────────────────────
