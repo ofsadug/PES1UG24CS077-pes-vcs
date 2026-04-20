@@ -139,6 +139,7 @@ int index_load(Index *index) {
     // (See Lab Appendix for logical steps)
     (void)index;
     return -1;
+// Commit 1: Start index implementation
 }
 
 // Save the index to .pes/index atomically.
