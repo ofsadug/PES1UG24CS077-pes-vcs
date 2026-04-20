@@ -170,7 +170,9 @@ int head_update(const ObjectID *new_commit) {
     if (!fgets(line, sizeof(line), f)) { fclose(f); return -1; }
     fclose(f);
     line[strcspn(line, "\r\n")] = '\0';
-
+// Commit 4: store commit object
+if (object_write(OBJ_COMMIT, buffer, len, id_out) != 0)
+    return -1;
     char target_path[520];
     if (strncmp(line, "ref: ", 5) == 0) {
         snprintf(target_path, sizeof(target_path), "%s/%s", PES_DIR, line + 5);
