@@ -95,7 +95,7 @@ int object_exists(const ObjectID *id) {
 // Returns 0 on success, -1 on error.
 int object_write(ObjectType type, const void *data, size_t len, ObjectID *id_out) {
     // TODO: Implement
-    // Commit 1: Header construction
+    // Commit 2: Add hashing
 
 const char *type_str;
 
@@ -107,10 +107,17 @@ else return -1;
 char header[64];
 int header_len = snprintf(header, sizeof(header), "%s %zu", type_str, len) + 1;
 
-// not implemented yet
-(void)data;
-(void)id_out;
+size_t total_len = header_len + len;
+char *full = malloc(total_len);
+if (!full) return -1;
 
+memcpy(full, header, header_len);
+memcpy(full + header_len, data, len);
+
+// hashing
+compute_hash(full, total_len, id_out);
+
+free(full);
 return -1;
     (void)type; (void)data; (void)len; (void)id_out;
     return -1;
